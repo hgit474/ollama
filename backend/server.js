@@ -3,8 +3,20 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 
-// Load environment variables from .env file
+// Load environment variables
 dotenv.config();
+
+// Initialize Express App
+const app = express();
+
+// Enable CORS for GitHub Pages
+app.use(cors({
+  origin: 'https://hgit474.github.io'
+}));
+
+// Body Parser Middleware
+app.use(express.json());
+app.use(bodyParser.json());
 
 // Initialize Gemini Client
 const { GoogleGenAI } = require('@google/genai');
@@ -12,40 +24,15 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 
 let ai;
 try {
-    // The SDK automatically looks for the GEMINI_API_KEY environment variable.
     ai = new GoogleGenAI({});
     console.log("Gemini client initialized successfully.");
 } catch (e) {
     ai = null;
-    console.warn("Warning: Gemini client failed to initialize. AI suggestions will be skipped.");
+    console.warn("Warning: Gemini client failed to initialize.");
     console.error(e);
 }
 
-
-// ---------- Express App Setup ----------
-
-const app = express();
-const PORT = 8000;
-
-// CORS Middleware (Matches your Python setup)
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Body Parser Middleware for JSON requests
-app.use(bodyParser.json());
-
-
-// ---------- Core Logic: Static Analysis (analyzeCode) ----------
-
-/**
- * Performs simple static code checks (equivalent to Python's analyze_code).
- * @param {string} code
- * @param {string} language
- * @returns {object} AnalysisResponse structure
- */
+// Static Analysis Function
 function analyzeCode(code, language) {
     const lines = code.split('\n');
     const issues = [];
@@ -56,7 +43,6 @@ function analyzeCode(code, language) {
         const lineNumber = index + 1;
         const trimmed = line.trim();
 
-        // 1. TODO comments (Warning)
         if (trimmed.includes("TODO")) {
             issues.push({
                 type: "warning",
@@ -66,7 +52,6 @@ function analyzeCode(code, language) {
             warnings++;
         }
 
-        // 2. Long line (> 100 chars) (Suggestion)
         if (line.length > 100) {
             issues.push({
                 type: "suggestion",
@@ -76,7 +61,6 @@ function analyzeCode(code, language) {
             suggestions++;
         }
 
-        // 3. JavaScript: '==' instead of '===' (Warning)
         if (language === "javascript" && trimmed.includes("==") && !trimmed.includes("===")) {
             issues.push({
                 type: "warning",
@@ -86,7 +70,6 @@ function analyzeCode(code, language) {
             warnings++;
         }
 
-        // 4. Debug prints (Suggestion)
         if (trimmed.startsWith("print(") || trimmed.includes("console.log")) {
             issues.push({
                 type: "suggestion",
@@ -97,34 +80,20 @@ function analyzeCode(code, language) {
         }
     });
 
-    return {
-        warnings,
-        suggestions,
-        total: issues.length,
-        issues,
-    };
+    return { warnings, suggestions, total: issues.length, issues };
 }
 
-
-// ---------- Core Logic: AI Code Generation (generateAIFixedCode) ----------
-
-/**
- * Asks a Gemini model to return a corrected, concise version of the code.
- * @param {string} code
- * @param {string} language
- * @returns {Promise<string|null>} Suggested code or null on failure.
- */
+// AI Code Generation Function
 async function generateAIFixedCode(code, language) {
     if (!ai) return null;
 
-    // --- COMPLETE AND CORRECT PROMPT DEFINITION ---
     const prompt = `
 You are an expert ${language} developer.
 
 Your task is to review the following code snippet and return a **corrected, more idiomatic, and concise** version of the code.
 
 **Important rules:**
-1. Only return the corrected code block. Do not include any explanation or extra text outside the code block.
+1. Only return the corrected code block.
 2. The code must be enclosed in a single markdown block for the specified language.
 3. Fix any simple bugs, improve readability, and adhere to best practices for ${language}.
 
@@ -136,28 +105,25 @@ ${code}
     try {
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: prompt, // Pass the prompt string directly
+            contents: prompt,
             config: {
                 systemInstruction: `You are an expert ${language} developer who follows instructions precisely and only returns code in a markdown block.`,
-                temperature: 0.3, // Low temperature for deterministic code
+                temperature: 0.3,
             },
         });
 
         const aiResponseText = response.text;
 
-        // Helper to extract the code block from the markdown response
         const extractCodeBlock = (text) => {
             const lines = text.split('\n');
             let codeLines = [];
             let inCodeBlock = false;
             
             for (const line of lines) {
-                if (line.trim().startsWith('```')) {
-                    if (inCodeBlock) {
-                        break; // End of code block
-                    }
+                if (line.trim().startsWith('```
+                    if (inCodeBlock) break;
                     inCodeBlock = true;
-                    continue; // Skip the ``` line
+                    continue;
                 }
                 if (inCodeBlock) {
                     codeLines.push(line);
@@ -174,10 +140,7 @@ ${code}
     }
 }
 
-
-// ---------- API Endpoints (Routes) ----------
-
-// Main analysis route (POST /analyze)
+// API Routes
 app.post('/analyze', async (req, res) => {
     const { code, language } = req.body;
 
@@ -185,28 +148,21 @@ app.post('/analyze', async (req, res) => {
         return res.status(400).json({ error: "Missing 'code' or 'language' in request body." });
     }
 
-    // 1. Run static analysis
     const analysisResponse = analyzeCode(code, language);
-
-    // 2. Run optional AI fix concurrently
     const suggestedCode = await generateAIFixedCode(code, language);
 
-    // 3. Combine results
     const finalResponse = {
-        ...analysisResponse, // Spread all static analysis fields
+        ...analysisResponse,
         suggested_code: suggestedCode,
     };
 
     res.json(finalResponse);
 });
 
-// Simple health check route (GET /)
 app.get('/', (req, res) => {
     res.json({ message: "Code Quality Assistant is running!" });
 });
 
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Start server with dynamic PORT for Render
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () =>
