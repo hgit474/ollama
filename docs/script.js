@@ -308,7 +308,8 @@ document.addEventListener("DOMContentLoaded", () => {
       analyzeBtn.textContent = "Analyzing..."; 
 
       try {
-        const response = await fetch("http://localhost:8000/analyze", {
+        const response = await fetch("https://ollama-backend-b5dw.onrender.com/analyze", {
+
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code, language }),
