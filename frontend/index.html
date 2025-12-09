@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Code Quality Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="container nav-content">
+        <div class="logo">Code Quality Assistant</div>
+
+        <nav class="nav-links">
+            <a
+              href="#"
+              class="nav-link active"
+              data-page="dashboardPage"
+              id="navDashboard"
+            >
+              Dashboard
+            </a>
+            <a href="#" class="nav-link" data-page="reportsPage" id="navReports">Reports</a>
+            <a href="#" class="nav-link" data-page="aboutPage" id="navAbout">About</a>
+          </nav>
+          
+          <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark mode">
+            <span id="themeIcon">🌙</span> </button>
+          
+          
+          
+      </div>
+    </header>
+
+    <main class="container main">
+      <section id="dashboardPage" class="page">
+        <section class="hero">
+          <h1>Analyze Your Code Instantly</h1>
+          <p>
+            Check for errors, vulnerabilities, and code smells before they reach
+            production.
+          </p>
+          <button id="getStartedBtn" class="primary-btn">Get Started</button>
+        </section>
+
+        <section id="editorSection" class="card editor-card">
+          <div class="editor-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="filename"></span>
+          </div>
+
+          <div class="editor-body">
+            <textarea
+              id="codeInput"
+              spellcheck="false"
+              placeholder="Paste your code here..."
+            >def greet(name):
+    print("Hello,", name)
+
+def is_even(number):
+    return number % 2 == 0
+
+greet("Alice")
+is_even(4)</textarea>
+          </div>
+
+          <div class="editor-controls">
+            
+            <select id="languageSelect">
+              <option value="javascript">JavaScript</option>
+              <option value="python" selected>Python</option>
+              <option value="java">Java</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+            </select>
+
+            <label class="secondary-btn file-btn">
+              <input type="file" id="fileInput" hidden />
+              Upload File
+            </label>
+
+            <button id="clearBtn" class="secondary-btn">
+              Clear
+            </button>
+          
+
+            <button id="analyzeBtn" class="primary-btn">
+              Analyze Code
+            </button>
+          </div>
+        </section>
+
+        <section id="resultsSection" class="card results-card hidden">
+          <h2>Analysis Results</h2>
+        
+          <section id="suggestionsSection" class="card suggestions-card hidden">
+  <h2>AI Suggestions (Edited Code)</h2>
+  <p class="page-subtitle">
+    This demo cleans your code lightly. In a real system, an AI model would rewrite it in more depth.
+  </p>
+  
+  <div class="suggestion-actions">
+    <button id="copySuggestedBtn" class="secondary-btn small-btn">Copy</button>
+  </div>
+
+  <textarea
+    id="suggestedCode"
+    spellcheck="false"
+    readonly
+    placeholder="Run an analysis to see the AI-edited code here..."
+  ></textarea>
+</section>
+
+
+
+          <div class="summary">
+            <div class="summary-item">
+              <span class="summary-label">Total Issues</span>
+              <span id="totalIssues" class="summary-value">0</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Warnings</span>
+              <span id="warningCount" class="summary-value">0</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Suggestions</span>
+              <span id="suggestionCount" class="summary-value">0</span>
+            </div>
+          </div>
+
+          <ul id="issuesList" class="issues-list">
+            </ul>
+
+          <p id="noIssuesMessage" class="no-issues hidden">
+            ✅ No major issues found. Great job!
+          </p>
+        </section>
+      </section>
+
+      <section id="reportsPage" class="page hidden">
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">
+          View a history of your recent analyses summarized by language and
+          issue count.
+        </p>
+
+        <section class="card reports-card">
+          <div class="reports-header">
+            <h2>Recent Analyses</h2>
+            <span id="reportsCount" class="reports-count">0 runs</span>
+          </div>
+
+          <div class="reports-table-wrapper">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Time</th>
+                  <th>Language</th>
+                  <th>Total Issues</th>
+                  <th>Warnings</th>
+                  <th>Suggestions</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody">
+                </tbody>
+            </table>
+          </div>
+
+          <p id="emptyReports" class="empty-text">
+            No reports yet. Run an analysis from the Dashboard to see it here.
+          </p>
+        </section>
+      </section>
+
+      <section id="aboutPage" class="page hidden">
+        <h1 class="page-title">About Code Quality Assistant</h1>
+        <p class="page-subtitle">
+          A lightweight web tool designed to help students and developers catch
+          common issues early.
+        </p>
+
+        <section class="card about-card">
+          <h2>What this project does</h2>
+          <p>
+            This demo focuses on the <strong>frontend</strong> experience of a
+            code analysis platform. It simulates how a professional tool would
+            look and behave using only HTML, CSS, and JavaScript.
+          </p>
+
+          <h3>Key Features</h3>
+          <ul class="about-list">
+            <li>Clean dashboard with embedded code editor area.</li>
+            <li>
+              Simple client-side analyzer that finds TODOs, long lines, debug
+              prints, and risky JavaScript equality checks.
+            </li>
+            <li>
+              Report page summarizing your recent runs directly in the browser.
+            </li>
+            </ul>
+
+          <h3>How it could be extended</h3>
+          <ul class="about-list">
+            <li>Connect to real static analyzers on a backend server.</li>
+            <li>Add AI-powered suggestions and auto-fix options.</li>
+            <li>Store reports in a database with user accounts.</li>
+            </ul>
+
+          <p class="about-footer">
+            Built as a learning project to understand UI/UX, basic analysis, and
+            multi-page navigation without frameworks.
+          </p>
+        </section>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
